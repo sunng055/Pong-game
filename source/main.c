@@ -22,12 +22,12 @@ typedef struct task {
 } task;
 
 unsigned char tempA = 0x00;
-unsigned char tempC = 0x00;
-unsigned char tempD = 0x00;
 
 
-static unsigned char col = 0x80; 
-static unsigned char row = 0xC3;
+unsigned char tempC = 0x00; //col for pad1
+unsigned char tempD = 0x00; //row for pad1
+static unsigned char col = 0x80; //pad1
+static unsigned char row = 0xC3;//pad1
 enum P1_States {wait, up, down};
 int P1_Tick(int state) {
 //static unsigned char col = 0x80; 
@@ -84,10 +84,10 @@ return state;
 }
 
 
-static unsigned char tempC3 = 0x00; 
-static unsigned char tempD3 = 0x00;
-static unsigned char col3 = 0x01;
-static unsigned char row3 = 0xC3;
+static unsigned char tempC3 = 0x00; //col for pad2
+static unsigned char tempD3 = 0x00; //row for pad2
+static unsigned char col3 = 0x01; //pad2
+static unsigned char row3 = 0xC3; //pad2
 enum P2_States {wait2, up2, down2};
 int P2_Tick(int state) {
 tempA = ~PINA;
@@ -143,7 +143,7 @@ return state;
 
 static unsigned char tempC1 = 0x00; //ball col
 static unsigned char tempD1 = 0x00; //ball row
-enum Ball_States {startBall, move, back, end};
+enum Ball_States {startBall, move, back, move1, topwall, end};
 int Ball_Tick(int state) {
 static unsigned char col1 = 0x40; //ball col
 static unsigned char row1 = 0xEF; //ball row
@@ -162,6 +162,9 @@ switch(state) {
 	else if (col1 == end2) {
 	state = back;
 	}
+	else if (row1 == 0x01) {
+	state = topwall;
+	}
 	else {
 	state = move;
 	}
@@ -177,6 +180,23 @@ switch(state) {
 	state = back;
 	}
 	break;
+	case topwall:
+	state = end;
+	break;
+	case move1:
+	if ((col1 == end2) && (tmpEND1 == 0xFF)) {
+        state = end;
+        }
+        else if (col1 == end2) {
+        state = back;
+        }
+        else if (row1 == 0x01) {
+        state = topwall;
+        }
+        else {
+        state = move;
+        }
+	break;
 	case end:
 	state = startBall;
 	break;
@@ -191,10 +211,17 @@ switch(state) {
 	row1 = 0xEF;
 	break;
 	case move:
+	row1 = ((row1 >> 1) + 0x80);
 	col1 = (col1 >> 1);
+	break;
+	case move1:
+	row1 = (row1 >> 1);
+	col1 = ((col1 << 1) - 1);
 	break;
 	case back:
 	col1 = (col1 << 1);
+	break;
+	case topwall:
 	break;
 	case end:
 	col1 = 0x00;
