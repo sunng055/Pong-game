@@ -140,10 +140,11 @@ tempD3 = row3;
 return state;
 }
 
-
+unsigned char scoreP1 = 0x00; //flag for scoring a point to P1
+unsigned char scoreP2 = 0x00; //flag for scoring a point to P2
 static unsigned char tempC1 = 0x00; //ball col
 static unsigned char tempD1 = 0x00; //ball row
-enum Ball_States {startBall, move, back, move1, back1, topwall, botwall, end};
+enum Ball_States {startBall, move, back, move1, back1, topwall, botwall, endP1, endP2};
 int Ball_Tick(int state) {
 static unsigned char col1 = 0x40; //ball col
 static unsigned char row1 = 0xEF; //ball row
@@ -157,7 +158,7 @@ switch(state) {
 	break;
 	case move:
 	if ((col1 == end2) && (tmpEND1 == 0xFF)) {
-	state = end;
+	state = endP1;
 	}
 	else if (col1 == end2) {
 	state = back;
@@ -171,7 +172,7 @@ switch(state) {
 	break;
 	case back:
 	if ((col1 == end1) && (tmpEND2 == 0xFF)) {
-	state = end;
+	state = endP2;
 	}
 	else if (col1 == end1) {
 	state = move;
@@ -191,7 +192,7 @@ switch(state) {
         state = move1;
 	}
 	else if ((col1 == end2) && (tmpEND1 == 0xFF)) {
-	state = end;
+	state = endP1;
 	}
 	else if (col1 == end2) {
 	state = back;
@@ -205,7 +206,7 @@ switch(state) {
         state = back1;
         }
         else if ((col1 == end1) && (tmpEND2 == 0xFF)) {
-        state = end;
+        state = endP2;
         }
         else if (col1 == end1) {
         state = move;
@@ -217,7 +218,10 @@ switch(state) {
 	case botwall:
 	state = back1;
 	break;
-	case end:
+	case endP1:
+	state = startBall;
+	break;
+	case endP2:
 	state = startBall;
 	break;
 	default:
@@ -250,9 +254,15 @@ switch(state) {
 	break;
 	case botwall:
 	break;
-	case end:
-	col1 = 0xFF;
-	row1 = 0x00;
+	case endP1:
+	//col1 = 0xFF;
+	//row1 = 0x00;
+	scoreP1 = scoreP1 + 1;
+	case endP2:
+	//col1 = 0xFF;
+        //row1 = 0x00;
+	scoreP2 = scoreP2 + 1;
+	break;
 	default:
 	break;
 }
@@ -301,6 +311,34 @@ switch(state) {
 return state;
 }
 
+
+unsigned char tempB = 0x00; //led display score for P1 and P2
+enum Score_States {polling};
+int Score_Tick(int state) {
+
+tempB = ~PINB; 
+
+switch(state) {
+	case polling:
+	state = polling;
+	break;
+	default:
+	state = polling;
+	break;
+}
+
+switch(state) {
+	case polling:
+	tempB = (scoreP1); // || (scoreP2 << 3);
+	//tempB = 0xFF; led works
+	break;
+	default:
+	break;
+}
+PORTB = tempB; 
+return state;
+}
+
 int main(void) {
     /* Insert DDR and PORT initializations */
         DDRA = 0x00;
@@ -311,8 +349,8 @@ int main(void) {
         PORTD = 0x00;
     /* Insert your solution below */
 
-	static task task1, task2, task3, task4;
-        task *tasks[] = {&task1, &task2, &task3, &task4};
+	static task task1, task2, task3, task4, task5;
+        task *tasks[] = {&task1, &task2, &task3, &task4, &task5};
         const unsigned short numTasks = sizeof(tasks)/sizeof(task*);
 
         const char start = -1;
@@ -337,6 +375,10 @@ int main(void) {
     task4.elapsedTime = task4.period;
     task4.TickFct = &Display_Tick;
 
+    task5.state = start;
+    task5.period = 1;
+    task5.elapsedTime = task4.period;
+    task5.TickFct = &Score_Tick;
 
     TimerSet(1);
     TimerOn();
