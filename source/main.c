@@ -143,7 +143,7 @@ return state;
 
 static unsigned char tempC1 = 0x00; //ball col
 static unsigned char tempD1 = 0x00; //ball row
-enum Ball_States {startBall, move, back, move1, topwall, end};
+enum Ball_States {startBall, move, back, move1, back1, topwall, botwall, end};
 int Ball_Tick(int state) {
 static unsigned char col1 = 0x40; //ball col
 static unsigned char row1 = 0xEF; //ball row
@@ -162,7 +162,7 @@ switch(state) {
 	else if (col1 == end2) {
 	state = back;
 	}
-	else if (row1 == 0x01) {
+	else if (row1 == 0xFE) {
 	state = topwall;
 	}
 	else {
@@ -176,26 +176,46 @@ switch(state) {
 	else if (col1 == end1) {
 	state = move;
 	}
+	else if (row1 == 0x7F) {
+	state = botwall;
+	}
 	else {
 	state = back;
 	}
 	break;
 	case topwall:
-	state = end;
+	state = move1;
 	break;
 	case move1:
-	if ((col1 == end2) && (tmpEND1 == 0xFF)) {
+	if (col1 != end2) {
+        state = move1;
+	}
+	else if ((col1 == end2) && (tmpEND1 == 0xFF)) {
+	state = end;
+	}
+	else if (col1 == end2) {
+	state = back;
+	}
+	else {
+	state = move;
+	}
+	break;
+	case back1:
+	if (col1 != end1) {
+        state = back1;
+        }
+        else if ((col1 == end1) && (tmpEND2 == 0xFF)) {
         state = end;
         }
-        else if (col1 == end2) {
-        state = back;
-        }
-        else if (row1 == 0x01) {
-        state = topwall;
-        }
-        else {
+        else if (col1 == end1) {
         state = move;
         }
+        else {
+        state = back;
+        }
+	break;
+	case botwall:
+	state = back1;
 	break;
 	case end:
 	state = startBall;
@@ -215,17 +235,24 @@ switch(state) {
 	col1 = (col1 >> 1);
 	break;
 	case move1:
-	row1 = (row1 >> 1);
-	col1 = ((col1 << 1) - 1);
+	row1 = ((row1 << 1) + 0x01);
+	col1 = (col1 >> 1);
 	break;
 	case back:
 	col1 = (col1 << 1);
+	row1 = ((row1 << 1) + 0x01);
+	break;
+	case back1:
+	col1 = (col1 << 1);
+	row1 = ((row1 >> 1) + 0x80);
 	break;
 	case topwall:
 	break;
+	case botwall:
+	break;
 	case end:
-	col1 = 0x00;
-	row1 = 0xFF;
+	col1 = 0xFF;
+	row1 = 0x00;
 	default:
 	break;
 }
