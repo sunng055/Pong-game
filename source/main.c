@@ -140,11 +140,15 @@ tempD3 = row3;
 return state;
 }
 
+unsigned char startArr[3] = {0xEF, 0xF7, 0xFB}; //starting for P1
+unsigned char indStart = 0x00; //starting for P1
+unsigned char startArr2[3] = {0xEF, 0xF7, 0xFB}; //starting for P2
+unsigned char indStart2 = 0x00; //starting for P2
 unsigned char scoreP1 = 0x00; //flag for scoring a point to P1
 unsigned char scoreP2 = 0x00; //flag for scoring a point to P2
 static unsigned char tempC1 = 0x00; //ball col
 static unsigned char tempD1 = 0x00; //ball row
-enum Ball_States {startBall, move, back, move1, back1, topwall, botwall, endP1, endP2};
+enum Ball_States {startBallP1, startBallP2,  move, back, move1, back1, topwall, botwall, endP1, endP2, winner};
 int Ball_Tick(int state) {
 static unsigned char col1 = 0x40; //ball col
 static unsigned char row1 = 0xEF; //ball row
@@ -153,8 +157,11 @@ unsigned char end2 = tempC3;//col 8 (paddle1)
 unsigned char tmpEND1 = row1 | tempD3;//checks if ball hits paddle2 (row)
 unsigned char tmpEND2 = row1 | tempD; //checks if ball hits paddle1 (row)
 switch(state) {
-	case startBall:
+	case startBallP1:
 	state = move;
+	break;
+	case startBallP2:
+	state = back;
 	break;
 	case move:
 	if ((col1 == end2) && (tmpEND1 == 0xFF)) {
@@ -219,21 +226,52 @@ switch(state) {
 	state = back1;
 	break;
 	case endP1:
-	state = startBall;
+	if ((scoreP1 < 7) || (scoreP2 < 7)) {
+	state = startBallP1;
+	}
+	else {
+	state = winner;
+	}
 	break;
 	case endP2:
-	state = startBall;
+	if ((scoreP1 < 7) || (scoreP2 < 7)) {
+        state = startBallP2;
+        }
+        else {
+        state = winner;
+        }
+	break;
+	case winner:
+	state = winner;
 	break;
 	default:
-	state = startBall;
+	state = startBallP1;
 	break;
 }
 
 switch(state) {
-	case startBall:
+	case startBallP1:
 	col1 = 0x40;
-	row1 = 0xEF;
+	if(indStart >= 2) {
+	row1 = startArr[indStart];
+	indStart = 0;
+	}
+	else {
+	row1 = startArr[indStart];
+	indStart = indStart + 1;
+	}
 	break;
+	case startBallP2:
+	col1 = 0x02;
+        if(indStart2 >= 2) {
+        row1 = startArr2[indStart2];
+        indStart2 = 0;
+        }
+        else {
+        row1 = startArr2[indStart2];
+        indStart2 = indStart2 + 1;
+        }
+        break;
 	case move:
 	row1 = ((row1 >> 1) + 0x80);
 	col1 = (col1 >> 1);
@@ -255,13 +293,13 @@ switch(state) {
 	case botwall:
 	break;
 	case endP1:
-	//col1 = 0xFF;
-	//row1 = 0x00;
 	scoreP1 = scoreP1 + 1;
 	case endP2:
-	//col1 = 0xFF;
-        //row1 = 0x00;
 	scoreP2 = scoreP2 + 1;
+	break;
+	case winner:
+        col1 = 0xFF;
+        row1 = 0x00;	
 	break;
 	default:
 	break;
@@ -329,7 +367,7 @@ switch(state) {
 
 switch(state) {
 	case polling:
-	tempB = (scoreP1); // || (scoreP2 << 3);
+	tempB = (scoreP2); // || (scoreP2 << 3);
 	//tempB = 0xFF; led works
 	break;
 	default:
