@@ -27,7 +27,7 @@ unsigned char tempA = 0x00;
 unsigned char tempC = 0x00; //col for pad1
 unsigned char tempD = 0x00; //row for pad1
 static unsigned char col = 0x80; //pad1
-static unsigned char row = 0xC3;//pad1
+static unsigned char row = 0xE3;//pad1
 enum P1_States {wait, up, down};
 int P1_Tick(int state) {
 //static unsigned char col = 0x80; 
@@ -60,19 +60,19 @@ switch(state) {
         case wait:
         break;
         case down:
-        if (row != 0x0F) {
+        if (row != 0x1F) {
         row = (row << 1) + 0x01;
         }
-        else if (row == 0x0F) {
-        row = 0x0F;
+        else if (row == 0x1F) {
+        row = 0x1F;
         }
         break;
         case up:
-        if (row != 0xF0) {
+        if (row != 0xF8) {
         row = (row >> 1) + 0x80;
         }
-        else if (row == 0xF0) {
-        row = 0xF0;
+        else if (row == 0xF8) {
+        row = 0xF8;
         }
         break;
         default:
@@ -87,7 +87,7 @@ return state;
 static unsigned char tempC3 = 0x00; //col for pad2
 static unsigned char tempD3 = 0x00; //row for pad2
 static unsigned char col3 = 0x01; //pad2
-static unsigned char row3 = 0xC3; //pad2
+static unsigned char row3 = 0xC7; //pad2
 enum P2_States {wait2, up2, down2};
 int P2_Tick(int state) {
 tempA = ~PINA;
@@ -117,19 +117,19 @@ switch(state) {
         case wait2:
         break;
         case down2:
-        if (row3 != 0x0F) {
+        if (row3 != 0x1F) {
         row3 = (row3 << 1) + 0x01;
         }
-        else if (row3 == 0x0F) {
-        row3 = 0x0F;
+        else if (row3 == 0x1F) {
+        row3 = 0x1F;
         }
         break;
         case up2:
-        if (row3 != 0xF0) {
+        if (row3 != 0xF8) {
         row3 = (row3 >> 1) + 0x80;
         }
-        else if (row3 == 0xF0) {
-        row3 = 0xF0;
+        else if (row3 == 0xF8) {
+        row3 = 0xF8;
         }
         break;
         default:
@@ -367,8 +367,7 @@ switch(state) {
 
 switch(state) {
 	case polling:
-	tempB = (scoreP2); // || (scoreP2 << 3);
-	//tempB = 0xFF; led works
+	tempB = (scoreP1); // || (scoreP2 << 3);
 	break;
 	default:
 	break;
@@ -404,7 +403,7 @@ int main(void) {
     task2.TickFct = &P2_Tick;
 
     task3.state = start;
-    task3.period = 150;
+    task3.period = 80;
     task3.elapsedTime = task3.period;
     task3.TickFct = &Ball_Tick;
 
