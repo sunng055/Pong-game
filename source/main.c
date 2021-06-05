@@ -23,7 +23,8 @@ typedef struct task {
 
 unsigned char tempA = 0x00;
 
-
+unsigned char midCol = 0xF7; //middle for pad1
+unsigned char tempMid1 = 0x00;
 unsigned char tempC = 0x00; //col for pad1
 unsigned char tempD = 0x00; //row for pad1
 static unsigned char col = 0x80; //pad1
@@ -62,6 +63,7 @@ switch(state) {
         case down:
         if (row != 0x1F) {
         row = (row << 1) + 0x01;
+	midCol = ((midCol << 1) + 0x01);
         }
         else if (row == 0x1F) {
         row = 0x1F;
@@ -70,6 +72,7 @@ switch(state) {
         case up:
         if (row != 0xF8) {
         row = (row >> 1) + 0x80;
+	midCol = (midCol >> 1) + 0x80;
         }
         else if (row == 0xF8) {
         row = 0xF8;
@@ -80,6 +83,7 @@ switch(state) {
 }
 tempC = col;
 tempD = row;
+tempMid1 = midCol;
 return state;
 }
 
@@ -148,7 +152,7 @@ unsigned char scoreP1 = 0x00; //flag for scoring a point to P1
 unsigned char scoreP2 = 0x00; //flag for scoring a point to P2
 static unsigned char tempC1 = 0x00; //ball col
 static unsigned char tempD1 = 0x00; //ball row
-enum Ball_States {startBallP1, startBallP2,  move, back, move1, back1, topwall, botwall, endP1, endP2, winner};
+enum Ball_States {startBallP1, startBallP2,  move, back, move1, back1, topwall, botwall, endP1, endP2, straight, winner};
 int Ball_Tick(int state) {
 static unsigned char col1 = 0x40; //ball col
 static unsigned char row1 = 0xEF; //ball row
@@ -156,6 +160,7 @@ unsigned char end1 = tempC; //col 1 (paddle2)
 unsigned char end2 = tempC3;//col 8 (paddle1)
 unsigned char tmpEND1 = row1 | tempD3;//checks if ball hits paddle2 (row)
 unsigned char tmpEND2 = row1 | tempD; //checks if ball hits paddle1 (row)
+unsigned char tmpMID = row1 | ~tempMid1; //checks if ball hits mid of pad1
 switch(state) {
 	case startBallP1:
 	state = move;
@@ -181,7 +186,10 @@ switch(state) {
 	if ((col1 == end1) && (tmpEND2 == 0xFF)) {
 	state = endP2;
 	}
-	else if (col1 == end1) {
+	else if ((col1 == end1) && (tmpMID == 0xFF)) {
+	state = straight;
+	}
+	else if (col1 == end1 && (tmpMID != 0xFF)) {
 	state = move;
 	}
 	else if (row1 == 0x7F) {
@@ -189,6 +197,18 @@ switch(state) {
 	}
 	else {
 	state = back;
+	}
+	break;
+	case straight:
+	//state = winner;
+	if ((col1 == end2) && (tmpEND1 == 0xFF)) {
+        state = endP1;
+        }
+        else if (col1 == end2) {
+        state = back;
+        }
+	else if (col1 != end2){
+	state = straight;
 	}
 	break;
 	case topwall:
@@ -215,6 +235,9 @@ switch(state) {
         else if ((col1 == end1) && (tmpEND2 == 0xFF)) {
         state = endP2;
         }
+	else if ((col1 == end1) && (tmpMID == 0xFF)) {
+        state = straight;
+        }
         else if (col1 == end1) {
         state = move;
         }
@@ -226,7 +249,7 @@ switch(state) {
 	state = back1;
 	break;
 	case endP1:
-	if ((scoreP1 < 7) || (scoreP2 < 7)) {
+	if ((scoreP1 < 3)) {
 	state = startBallP1;
 	}
 	else {
@@ -234,7 +257,7 @@ switch(state) {
 	}
 	break;
 	case endP2:
-	if ((scoreP1 < 7) || (scoreP2 < 7)) {
+	if ((scoreP2 < 3)) {
         state = startBallP2;
         }
         else {
@@ -290,12 +313,19 @@ switch(state) {
 	break;
 	case topwall:
 	break;
+	case straight:
+	col1 = (col1 >> 1);
+	break;
 	case botwall:
 	break;
 	case endP1:
 	scoreP1 = scoreP1 + 1;
+	col1 = 0x0F;
+	row1 = 0x00;
 	case endP2:
 	scoreP2 = scoreP2 + 1;
+	col1 = 0xF0;
+	row1 = 0x00;
 	break;
 	case winner:
         col1 = 0xFF;
@@ -350,11 +380,12 @@ return state;
 }
 
 
-unsigned char tempB = 0x00; //led display score for P1 and P2
+unsigned char tempB1 = 0x00; //led display score for P1
+unsigned char tempB2 = 0x00;
 enum Score_States {polling};
 int Score_Tick(int state) {
-
-tempB = ~PINB; 
+unsigned char sc1 = scoreP1;
+unsigned char sc2 = scoreP2;
 
 switch(state) {
 	case polling:
@@ -367,12 +398,12 @@ switch(state) {
 
 switch(state) {
 	case polling:
-	tempB = (scoreP1); // || (scoreP2 << 3);
+	tempB1 = sc1;// + (sc2 * 4);
 	break;
 	default:
 	break;
 }
-PORTB = tempB; 
+//PORTB = tempB1;
 return state;
 }
 
@@ -381,7 +412,9 @@ int main(void) {
         DDRA = 0x00;
         DDRC = 0xFF;
         DDRD = 0xFF;
+	DDRB = 0xFF;
         PORTA = 0xFF;
+	PORTB = 0xFF;
         PORTC = 0x00;
         PORTD = 0x00;
     /* Insert your solution below */
@@ -403,7 +436,7 @@ int main(void) {
     task2.TickFct = &P2_Tick;
 
     task3.state = start;
-    task3.period = 80;
+    task3.period = 150;
     task3.elapsedTime = task3.period;
     task3.TickFct = &Ball_Tick;
 
