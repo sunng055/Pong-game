@@ -217,6 +217,9 @@ switch(state) {
         else if (col1 == end2) {
         state = back;
         }
+	else if (row1 == 0xFE) {
+	state = topwall;
+	}
 	else if (col1 != end2){
 	state = straight;
 	}
@@ -230,6 +233,9 @@ switch(state) {
         else if (col1 == end1) {
         state = move;
         }
+	else if (row1 == 0x7F) {
+	state = botwall;
+	}
         else if (col1 != end1){
         state = straight2;
         }
@@ -357,10 +363,12 @@ switch(state) {
 
 	case straight:
 	col1 = (col1 >> 1);
+	row1 = ((row1 >> 1) + 0x80);
 	break;
 
 	case straight2:
 	col1 = (col1 << 1);
+	row1 = ((row1 << 1) + 0x01);
 	break;
 
 	case botwall:
