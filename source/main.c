@@ -158,7 +158,7 @@ unsigned char scoreP1 = 0x00; //flag for scoring a point to P1
 unsigned char scoreP2 = 0x00; //flag for scoring a point to P2
 static unsigned char tempC1 = 0x00; //ball col
 static unsigned char tempD1 = 0x00; //ball row
-enum Ball_States {startBallP1, startBallP2,  move, back, move1, back1, back2, topwall, topwall2, botwall, endP1, endP2, straight, straight2, winner};
+enum Ball_States {startBallP1, startBallP2,  move, back, move1, back1, move2, back2, topwall, topwall2, botwall, botwall2, endP1, endP2, straight, straight2, winner};
 int Ball_Tick(int state) {
 static unsigned char col1 = 0x40; //ball col
 static unsigned char row1 = 0xEF; //ball row
@@ -251,7 +251,10 @@ switch(state) {
 	break;
 
 	case move1:
-	if (col1 != end2) {
+	if ((col1 != end2) && (row1 == 0x7F)) {
+        state = botwall2;
+        }
+	else if (col1 != end2) {
         state = move1;
 	}
 	else if ((col1 == end2) && (tmpEND1 == 0xFF)) {
@@ -268,6 +271,10 @@ switch(state) {
 	}
 	break;
 
+	case move2:
+	state = move;
+	break;
+
 	case back1:
 	if ((col1 != end1) && (row1 == 0xFE)) {
         state = topwall2;
@@ -282,30 +289,20 @@ switch(state) {
         state = straight;
         }
         else if (col1 == end1) {
-        state = move;
+        state = move1;
         }
 	break;
 
 	case back2:
-	if ((col1 == end1) && (tmpEND2 == 0xFF)) {
-        state = endP2;
-        }
-        else if ((col1 == end1) && (tmpMID == 0xFF)) {
-        state = straight;
-        }
-        else if (col1 == end1) {
-        state = move;
-        }
-        else if (row1 == 0x7F) {
-        state = botwall;
-        }
-        else {
         state = back;
-        }
 	break;
 
 	case botwall:
 	state = back1;
+	break;
+
+	case botwall2:
+	state = move2;
 	break;
 
 	case endP1:
@@ -370,6 +367,9 @@ switch(state) {
 	row1 = ((row1 << 1) + 0x01);
 	col1 = (col1 >> 1);
 	break;
+	
+	case move2:
+	break;
 
 	case back:
 	col1 = (col1 << 1);
@@ -401,6 +401,9 @@ switch(state) {
 	break;
 
 	case botwall:
+	break;
+
+	case botwall2:
 	break;
 
 	case endP1:
@@ -528,7 +531,7 @@ int main(void) {
     task2.TickFct = &P2_Tick;
 
     task3.state = start;
-    task3.period = 150;
+    task3.period = 80;
     task3.elapsedTime = task3.period;
     task3.TickFct = &Ball_Tick;
 
