@@ -34,7 +34,7 @@ int P1_Tick(int state) {
 //static unsigned char col = 0x80; 
 //static unsigned char row = 0xC3;
 
-tempA = ~PINA;
+tempA = ~PINA & 0x03;
 switch(state) {
         case wait:
         if (tempA == 0x01) {
@@ -96,14 +96,14 @@ static unsigned char col3 = 0x01; //pad2
 static unsigned char row3 = 0xC7; //pad2
 enum P2_States {wait2, up2, down2};
 int P2_Tick(int state) {
-tempA = ~PINA;
+tempA = ~PINA; //was for player control P2
 switch(state) {
         case wait2:
         if (tempA == 0x04) {
-        state = up;
+        state = up2;
         }
         else if (tempA == 0x08) {
-        state = down;
+        state = down2;
         }
         else {
         state = wait2;
