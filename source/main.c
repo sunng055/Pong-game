@@ -14,6 +14,9 @@
 #include "simAVRHeader.h"
 #endif
 #include "../header/timer.h"
+#include <stdlib.h>
+#include <stdio.h>
+
 typedef struct task {
         int state;
         unsigned long period;
@@ -96,19 +99,21 @@ static unsigned char tempC3 = 0x00; //col for pad2
 static unsigned char tempD3 = 0x00; //row for pad2
 static unsigned char col3 = 0x01; //pad2
 static unsigned char row3 = 0xC7; //pad2
+//unsigned char rando = rand() % 2;
 enum P2_States {wait2, up2, down2};
 int P2_Tick(int state) {
 //tempA = ~PINA; was for player control P2
 tempAiC = tempC1;
 unsigned char tempAiR = tempMid1;
+unsigned char rando = rand() % 2;
 
 switch(state) {
         case wait2:
-        if ((tempAiC < 3) && (tempAiR > row3)) {
-        state = up2;
+	if ((tempAiC < 3) && (tempAiR > row3) && rando == 1) {
+	state = up2;
         }
-        else if ((tempAiC < 3) && (tempAiR < row3)) {
-        state = down2;
+        else if ((tempAiC < 3) && (tempAiR < row3) && rando == 1) {
+	state = down2;
         }
         else {
         state = wait2;
