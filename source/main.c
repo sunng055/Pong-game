@@ -149,6 +149,7 @@ tempMid2 = midCol2;
 return state;
 }
 
+//unsigned char flagTop = 0x00; //to tell which direction ball is coming from
 unsigned char startArr[3] = {0xEF, 0xF7, 0xFB}; //starting for P1
 unsigned char indStart = 0x00; //starting for P1
 unsigned char startArr2[3] = {0xEF, 0xF7, 0xFB}; //starting for P2
@@ -157,7 +158,7 @@ unsigned char scoreP1 = 0x00; //flag for scoring a point to P1
 unsigned char scoreP2 = 0x00; //flag for scoring a point to P2
 static unsigned char tempC1 = 0x00; //ball col
 static unsigned char tempD1 = 0x00; //ball row
-enum Ball_States {startBallP1, startBallP2,  move, back, move1, back1, topwall, botwall, endP1, endP2, straight, straight2, winner};
+enum Ball_States {startBallP1, startBallP2,  move, back, move1, back1, back2, topwall, topwall2, botwall, endP1, endP2, straight, straight2, winner};
 int Ball_Tick(int state) {
 static unsigned char col1 = 0x40; //ball col
 static unsigned char row1 = 0xEF; //ball row
@@ -198,7 +199,7 @@ switch(state) {
 	else if ((col1 == end1) && (tmpMID == 0xFF)) {
 	state = straight;
 	}
-	else if (col1 == end1 && (tmpMID != 0xFF)) {
+	else if (col1 == end1) {
 	state = move;
 	}
 	else if (row1 == 0x7F) {
@@ -209,7 +210,7 @@ switch(state) {
 	}
 	break;
 
-	case straight:
+	case straight://not actually straight it goes diagonal lol
 	//state = winner;
 	if ((col1 == end2) && (tmpEND1 == 0xFF)) {
         state = endP1;
@@ -245,6 +246,10 @@ switch(state) {
 	state = move1;
 	break;
 
+	case topwall2:
+	state = back2;
+	break;
+
 	case move1:
 	if (col1 != end2) {
         state = move1;
@@ -256,15 +261,18 @@ switch(state) {
         state = straight2;
         }
 	else if (col1 == end2) {
-	state = back;
+	state = back1;
 	}
 	else {
-	state = move;
+	state = move1;
 	}
 	break;
 
 	case back1:
-	if (col1 != end1) {
+	if ((col1 != end1) && (row1 == 0xFE)) {
+        state = topwall2;
+        }
+	else if (col1 != end1) {
         state = back1;
         }
         else if ((col1 == end1) && (tmpEND2 == 0xFF)) {
@@ -275,6 +283,21 @@ switch(state) {
         }
         else if (col1 == end1) {
         state = move;
+        }
+	break;
+
+	case back2:
+	if ((col1 == end1) && (tmpEND2 == 0xFF)) {
+        state = endP2;
+        }
+        else if ((col1 == end1) && (tmpMID == 0xFF)) {
+        state = straight;
+        }
+        else if (col1 == end1) {
+        state = move;
+        }
+        else if (row1 == 0x7F) {
+        state = botwall;
         }
         else {
         state = back;
@@ -358,7 +381,13 @@ switch(state) {
 	row1 = ((row1 >> 1) + 0x80);
 	break;
 
+	case back2:
+	break;
+
 	case topwall:
+	break;
+	
+	case topwall2:
 	break;
 
 	case straight:
