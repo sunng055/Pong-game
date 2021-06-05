@@ -171,9 +171,11 @@ switch(state) {
 	case startBallP1:
 	state = move;
 	break;
+
 	case startBallP2:
 	state = back;
 	break;
+
 	case move:
 	if ((col1 == end2) && (tmpEND1 == 0xFF)) {
 	state = endP1;
@@ -188,6 +190,7 @@ switch(state) {
 	state = move;
 	}
 	break;
+
 	case back:
 	if ((col1 == end1) && (tmpEND2 == 0xFF)) {
 	state = endP2;
@@ -205,6 +208,7 @@ switch(state) {
 	state = back;
 	}
 	break;
+
 	case straight:
 	//state = winner;
 	if ((col1 == end2) && (tmpEND1 == 0xFF)) {
@@ -217,6 +221,7 @@ switch(state) {
 	state = straight;
 	}
 	break;
+
 	case straight2:
 	//state = winner;
 	if ((col1 == end1) && (tmpEND2 == 0xFF)) {
@@ -229,9 +234,11 @@ switch(state) {
         state = straight2;
         }
 	break;
+
 	case topwall:
 	state = move1;
 	break;
+
 	case move1:
 	if (col1 != end2) {
         state = move1;
@@ -249,6 +256,7 @@ switch(state) {
 	state = move;
 	}
 	break;
+
 	case back1:
 	if (col1 != end1) {
         state = back1;
@@ -266,9 +274,11 @@ switch(state) {
         state = back;
         }
 	break;
+
 	case botwall:
 	state = back1;
 	break;
+
 	case endP1:
 	if ((scoreP1 < 3)) {
 	state = startBallP1;
@@ -277,6 +287,7 @@ switch(state) {
 	state = winner;
 	}
 	break;
+
 	case endP2:
 	if ((scoreP2 < 3)) {
         state = startBallP2;
@@ -285,15 +296,18 @@ switch(state) {
         state = winner;
         }
 	break;
+
 	case winner:
 	state = winner;
 	break;
+
 	default:
 	state = startBallP1;
 	break;
 }
 
 switch(state) {
+
 	case startBallP1:
 	col1 = 0x40;
 	if(indStart >= 2) {
@@ -305,6 +319,7 @@ switch(state) {
 	indStart = indStart + 1;
 	}
 	break;
+
 	case startBallP2:
 	col1 = 0x02;
         if(indStart2 >= 2) {
@@ -316,45 +331,58 @@ switch(state) {
         indStart2 = indStart2 + 1;
         }
         break;
+
 	case move:
 	row1 = ((row1 >> 1) + 0x80);
 	col1 = (col1 >> 1);
 	break;
+
 	case move1:
 	row1 = ((row1 << 1) + 0x01);
 	col1 = (col1 >> 1);
 	break;
+
 	case back:
 	col1 = (col1 << 1);
 	row1 = ((row1 << 1) + 0x01);
 	break;
+
 	case back1:
 	col1 = (col1 << 1);
 	row1 = ((row1 >> 1) + 0x80);
 	break;
+
 	case topwall:
 	break;
+
 	case straight:
 	col1 = (col1 >> 1);
 	break;
+
 	case straight2:
 	col1 = (col1 << 1);
 	break;
+
 	case botwall:
 	break;
+
 	case endP1:
 	scoreP1 = scoreP1 + 1;
 	col1 = 0x0F;
 	row1 = 0x00;
+	break;
+
 	case endP2:
 	scoreP2 = scoreP2 + 1;
 	col1 = 0xF0;
 	row1 = 0x00;
 	break;
+
 	case winner:
         col1 = 0xFF;
         row1 = 0x00;	
 	break;
+
 	default:
 	break;
 }
@@ -414,6 +442,8 @@ unsigned char sc2 = scoreP2;
 switch(state) {
 	case polling:
 	state = polling;
+	//tempB1 = sc1;
+        //tempB2 = sc2;
 	break;
 	default:
 	state = polling;
@@ -422,12 +452,13 @@ switch(state) {
 
 switch(state) {
 	case polling:
-	tempB1 = sc1;// + (sc2 * 4);
+	tempB1 = sc1;
+	tempB2 = sc2 << 2;
 	break;
 	default:
 	break;
 }
-//PORTB = tempB1;
+PORTB = tempB1 | tempB2;
 return state;
 }
 
