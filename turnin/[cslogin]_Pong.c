@@ -537,12 +537,12 @@ int main(void) {
 
     task3.state = start;
     task3.period = 100;
-    task3.elapsedTime = task2.period;
+    task3.elapsedTime = task3.period;
     task3.TickFct = &P2_Tick;
 
     task2.state = start;
     task2.period = 150;
-    task2.elapsedTime = task3.period;
+    task2.elapsedTime = task2.period;
     task2.TickFct = &Ball_Tick;
 
     task4.state = start;
