@@ -1,13 +1,13 @@
 /*	Author: lab
  *  Partner(s) Name: Sunny Ng
  *	Lab Section:
- *	Assignment: Final Project Pong Game
+ *	Assignment: Final Project Pong Game advancement2
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
  *	code, is my own original work.
  *
- *	Demo Video:
+ *	Demo Video: https://youtu.be/5B6wKJsDUvU
  */
 #include <avr/io.h>
 #ifdef _SIMULATE_
