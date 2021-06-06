@@ -100,10 +100,10 @@ tempA = ~PINA;
 switch(state) {
         case wait2:
         if (tempA == 0x04) {
-        state = up;
+        state = up2;
         }
         else if (tempA == 0x08) {
-        state = down;
+        state = down2;
         }
         else {
         state = wait2;
@@ -542,7 +542,7 @@ int main(void) {
 
     task5.state = start;
     task5.period = 1;
-    task5.elapsedTime = task4.period;
+    task5.elapsedTime = task5.period;
     task5.TickFct = &Score_Tick;
 
     TimerSet(1);
