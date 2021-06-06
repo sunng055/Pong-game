@@ -569,13 +569,13 @@ int main(void) {
 	//PORTC = tempC;
 	//PORTD = tempD;
     }//end of for loop
-	if ( (tempD1 | ~tempMid2) == 0xFF && (tempC1 == 0x80)) {
+	if ( (tempD1 | ~tempMid2) == 0xFF && (tempC1 == 0x80)) { //if hit middle, slow down
 		task2.period = 300;
 	}
-	else if ((tempC1 == 0x01) && (tempD1 | ~tempMid2) == 0xFF) {
+	else if ((tempC1 == 0x01) && (tempD1 | ~tempMid2) == 0xFF) { //if hit middle, slow down
 		task2.period = 300;
 	}
-	else if(tempC1 == 0x01 || tempC1 == 0x80) {
+	else if(tempC1 == 0x01 || tempC1 == 0x80) { //if hit edge paddle, speedy
 		task2.period = 30;
 	}
 	else {
